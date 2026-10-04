@@ -103,6 +103,14 @@ async function collectPages(fetchPage, options = {}) {
     if (remaining <= 0) return outcome(state, 'timeout');
 
     const controller = new AbortController();
+    const interruptionReason = () => {
+      if (abortReason(options.signal)) return 'aborted';
+      if (Date.now() - state.startedAt >= limits.maxDurationMs) {
+        controller.abort(new Error('collection timed out'));
+        return 'timeout';
+      }
+      return undefined;
+    };
     let resolveAbort;
     const abort = new Promise((resolve) => { resolveAbort = resolve; });
     const onAbort = () => {
@@ -124,6 +132,8 @@ async function collectPages(fetchPage, options = {}) {
       const settled = await Promise.race([request, timeout, abort]);
       if (settled.aborted) return outcome(state, 'aborted');
       if (settled.timeout) return outcome(state, 'timeout');
+      const interruptedAfterFetch = interruptionReason();
+      if (interruptedAfterFetch) return outcome(state, interruptedAfterFetch);
       if (settled.error) return outcome(state, abortReason(options.signal) || 'fetch_error', settled.error);
 
       const page = settled.page;
@@ -139,8 +149,10 @@ async function collectPages(fetchPage, options = {}) {
       if (state.bytes > limits.maxBytes) return outcome(state, 'max_bytes');
 
       for (const item of entries) {
-        if (state.items.length >= limits.maxItems) return outcome(state, 'max_items');
+        const interrupted = interruptionReason();
+        if (interrupted) return outcome(state, interrupted);
         if (!getId) {
+          if (state.items.length >= limits.maxItems) return outcome(state, 'max_items');
           state.items.push(item);
           continue;
         }
@@ -161,17 +173,22 @@ async function collectPages(fetchPage, options = {}) {
           state.diagnostics.push(Object.freeze({ code: 'duplicate_item', id, pageIndex: state.pages - 1 }));
           continue;
         }
+        if (state.items.length >= limits.maxItems) return outcome(state, 'max_items');
         identities.set(id, serialized);
         state.items.push(item);
       }
 
-      if (!hasNextCursor(page)) return outcome(state, 'complete');
+      let hasNext;
       let nextCursor;
       try {
-        nextCursor = getNextCursor(page);
+        hasNext = hasNextCursor(page);
+        if (hasNext) nextCursor = getNextCursor(page);
       } catch (error) {
         return outcome(state, 'invalid_page', error);
       }
+      const interruptedAfterPage = interruptionReason();
+      if (interruptedAfterPage) return outcome(state, interruptedAfterPage);
+      if (!hasNext) return outcome(state, 'complete');
       if (typeof nextCursor !== 'string') {
         return outcome(state, 'invalid_page', new TypeError('nextCursor must be a string when present'));
       }
@@ -242,6 +259,10 @@ class CatalogSnapshotStore {
       const versionBefore = getVersion ? await getVersion() : undefined;
       attempt = await collectPages(fetchPage, options);
       const versionAfter = getVersion ? await getVersion() : undefined;
+      if (abortReason(options.signal)) {
+        attempt = Object.freeze({ ...attempt, complete: false, reason: 'aborted' });
+        break;
+      }
       if (!attempt.complete || !getVersion || Object.is(versionBefore, versionAfter)) break;
       stabilityRetries += 1;
       attempt = Object.freeze({ ...attempt, complete: false, reason: 'source_changed' });

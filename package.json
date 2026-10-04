@@ -1,6 +1,6 @@
 {
   "name": "mcp-catalog-snapshot",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Collect complete MCP catalogs with hard pagination bounds and atomic last-known-good snapshots.",
   "keywords": ["mcp", "model-context-protocol", "pagination", "catalog", "ai-agents", "snapshot"],
   "license": "MIT",

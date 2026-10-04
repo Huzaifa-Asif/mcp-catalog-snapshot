@@ -180,7 +180,7 @@ Your `getVersion` value changed during every allowed attempt. Debounce rapid lis
 
 ### `timeout` but the underlying request continues
 
-The supplied operation ignored `AbortSignal`. The collection still returns at the configured deadline, but transport cleanup depends on your SDK. Pass the signal into a transport API that supports cancellation.
+The supplied operation ignored `AbortSignal`. The collection stops waiting at the configured deadline, but transport cleanup depends on your SDK. Pass the signal into a transport API that supports cancellation. Synchronous fetch callbacks and page processing cannot be preempted by JavaScript timers; the deadline and cancellation state are checked again before reporting a complete collection.
 
 ### `conflicting_identity`
 
