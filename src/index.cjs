@@ -62,7 +62,7 @@ function outcome(state, reason, error) {
     bytes: state.bytes,
     elapsedMs: Date.now() - state.startedAt,
     diagnostics: Object.freeze([...state.diagnostics]),
-    ...(error ? { error: Object.freeze({ name: error.name || 'Error', message: String(error.message || error) }) } : {}),
+    ...(arguments.length >= 3 ? { error: Object.freeze({ name: error?.name || 'Error', message: String(error?.message ?? error) }) } : {}),
   });
 }
 
@@ -134,7 +134,9 @@ async function collectPages(fetchPage, options = {}) {
       if (settled.timeout) return outcome(state, 'timeout');
       const interruptedAfterFetch = interruptionReason();
       if (interruptedAfterFetch) return outcome(state, interruptedAfterFetch);
-      if (settled.error) return outcome(state, abortReason(options.signal) || 'fetch_error', settled.error);
+      if (Object.prototype.hasOwnProperty.call(settled, 'error')) {
+        return outcome(state, abortReason(options.signal) || 'fetch_error', settled.error);
+      }
 
       const page = settled.page;
       let entries;

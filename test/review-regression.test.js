@@ -107,3 +107,16 @@ test('cancellation during post-collection version sampling cannot commit', async
   assert.equal(result.stabilityRetries, 0);
   assert.strictEqual(store.snapshot, before);
 });
+
+test('falsy fetch rejections retain the fetch_error classification and value', async () => {
+  for (const rejection of [undefined, null, false, 0, '']) {
+    const store = new CatalogSnapshotStore(['old']);
+    const before = store.snapshot;
+    const result = await store.refresh(() => Promise.reject(rejection));
+    assert.equal(result.reason, 'fetch_error');
+    assert.equal(result.committed, false);
+    assert.strictEqual(store.snapshot, before);
+    assert.equal(result.attempt.error.name, 'Error');
+    assert.equal(result.attempt.error.message, String(rejection));
+  }
+});
