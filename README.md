@@ -200,6 +200,17 @@ Bind class methods to their client (`client.listTools.bind(client)`). If a clien
 
 See [SECURITY.md](SECURITY.md) for vulnerability reporting.
 
+## Runnable example and related tool
+
+[`examples/mcp-tools.mjs`](examples/mcp-tools.mjs) demonstrates a bounded,
+atomic `tools/list` refresh against an MCP SDK-compatible client shape. It is
+executed by `npm run check` and ships in the npm tarball.
+
+If the transport itself exposes a long-lived `AsyncIterable`,
+[`async-iterator-watchdog`](https://www.npmjs.com/package/async-iterator-watchdog)
+can enforce first-progress, idle, and total deadlines around that separate
+streaming boundary.
+
 ## Development
 
 ```sh

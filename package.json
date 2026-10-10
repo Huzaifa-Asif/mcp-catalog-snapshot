@@ -1,15 +1,24 @@
 {
   "name": "mcp-catalog-snapshot",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Collect complete MCP catalogs with hard pagination bounds and atomic last-known-good snapshots.",
-  "keywords": ["mcp", "model-context-protocol", "pagination", "catalog", "ai-agents", "snapshot"],
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "pagination",
+    "catalog",
+    "ai-agents",
+    "snapshot"
+  ],
   "license": "MIT",
   "author": "Huzaifa Asif",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Huzaifa-Asif/mcp-catalog-snapshot.git"
   },
-  "bugs": { "url": "https://github.com/Huzaifa-Asif/mcp-catalog-snapshot/issues" },
+  "bugs": {
+    "url": "https://github.com/Huzaifa-Asif/mcp-catalog-snapshot/issues"
+  },
   "homepage": "https://github.com/Huzaifa-Asif/mcp-catalog-snapshot#readme",
   "type": "module",
   "main": "./src/index.cjs",
@@ -22,14 +31,24 @@
       "require": "./src/index.cjs"
     }
   },
-  "files": ["src", "README.md", "LICENSE", "CHANGELOG.md"],
-  "engines": { "node": ">=18" },
+  "files": [
+    "src",
+    "examples",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
   "sideEffects": false,
   "scripts": {
     "lint": "node scripts/lint.mjs",
     "test": "node --test",
     "test:coverage": "node --experimental-test-coverage --test",
-    "check": "npm run lint && npm run test:coverage && npm pack --dry-run"
+    "check": "npm run lint && npm run test:coverage && node examples/mcp-tools.mjs && npm pack --dry-run"
   },
-  "publishConfig": { "access": "public" }
+  "publishConfig": {
+    "access": "public"
+  }
 }
